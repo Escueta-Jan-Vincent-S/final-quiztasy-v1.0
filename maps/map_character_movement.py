@@ -1,4 +1,5 @@
 import pygame
+import sys
 import os
 
 class MapCharacterMovement:
@@ -24,7 +25,7 @@ class MapCharacterMovement:
 
     def load_character_animations(self):
         """Load all character animation frames based on hero_type."""
-        base_path = os.path.join(self.script_dir, "assets", "images", "map", "animation", self.hero_type)
+        base_path = os.path.join(self.script_dir, "..", "assets", "images", "map", "animation", self.hero_type)
 
         # Initialize animation dictionaries
         self.animations = {
