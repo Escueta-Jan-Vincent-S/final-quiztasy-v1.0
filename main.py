@@ -68,8 +68,7 @@ class FinalQuiztasy:
             self.audio_manager.play_music()
 
         # Load the map with a callback to return to the main menu
-        self.lspu_map = Map(self.screen, self.script_dir, self.return_to_main_menu, self.audio_manager,
-                            self.selected_hero)
+        self.lspu_map = Map(self.screen, self.script_dir, self.return_to_main_menu, self.audio_manager, self.selected_hero)
         self.hero_selection.hide()
         self.running_map = True
 
