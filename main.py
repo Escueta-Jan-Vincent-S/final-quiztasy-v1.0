@@ -54,7 +54,6 @@ class FinalQuiztasy:
 
     def map(self, hero_ost_path):
         """Stops menu music, plays hero-specific map music, and loads the map."""
-        print("Loading LSPU Map...")
         if not hasattr(self, "selected_hero") or not self.selected_hero:
             self.selected_hero = "boy"  # Default to boy if no hero was selected
 
