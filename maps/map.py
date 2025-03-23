@@ -3,7 +3,8 @@ import os
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
 from ui.back_button import BackButton
 from .map_character_movement import MapCharacterMovement
-
+from ui.button import Button
+from .levels import Levels
 
 class Map:
     def __init__(self, screen, script_dir, go_back_callback, audio_manager, hero_type=None):
@@ -43,8 +44,52 @@ class Map:
             SCREEN_HEIGHT // 2
         )
 
+        # Initialize levels
+        self.levels_manager = Levels(script_dir)
+
+        # Initialize enter button (but don't create it yet - will be created dynamically)
+        self.enter_button = None
+        self.active_level = None
+
         # Initialize clock for the run method
         self.clock = pygame.time.Clock()
+
+        # Set the character to spawn at level 1
+        self.spawn_at_level(1)
+
+    def spawn_at_level(self, level_id):
+        """Spawn the character at the specified level."""
+        # Get the level by ID
+        level = self.levels_manager.get_level_by_id(level_id)
+
+        if level:
+            # Calculate map position to center the character on the level
+            character_screen_x = SCREEN_WIDTH // 2
+            character_screen_y = SCREEN_HEIGHT // 2
+
+            # The map needs to be positioned so that the level is under the character
+            self.map_x = character_screen_x - level["map_x"] - level["width"] // 2
+            self.map_y = character_screen_y - level["map_y"] - level["height"] // 2
+
+            # Ensure map stays within bounds
+            map_bounds = {
+                'min_x': SCREEN_WIDTH - self.map_width,
+                'max_x': 0,
+                'min_y': SCREEN_HEIGHT - self.map_height,
+                'max_y': 0,
+            }
+
+            self.map_x = max(min(self.map_x, map_bounds['max_x']), map_bounds['min_x'])
+            self.map_y = max(min(self.map_y, map_bounds['max_y']), map_bounds['min_y'])
+
+    def create_enter_button(self, x, y):
+        """Create an enter button at the specified position."""
+        # Path to button images
+        idle_img = os.path.join(self.script_dir, "assets", "images", "buttons", "enter level", "enter_btn_img.png")
+        hover_img = os.path.join(self.script_dir, "assets", "images", "buttons", "enter level", "enter_btn_hover.png")
+
+        # Create button
+        self.enter_button = Button(x=x, y=y, idle_img=idle_img, hover_img=hover_img, action=self.enter_level, scale=0.5, audio_manager=self.audio_manager)
 
     def go_back(self):
         """Handle back button action."""
@@ -72,19 +117,53 @@ class Map:
             (self.map_x, self.map_y),
             (SCREEN_WIDTH, SCREEN_HEIGHT)
         )
-
         # Update map position
         self.map_x = map_adjustment[0]
         self.map_y = map_adjustment[1]
+        # Check for level proximity after movement
+        self.check_level_proximity(character_pos)
+
+    def check_level_proximity(self, character_pos):
+        """Check if character is near a level to display the enter button."""
+        char_x, char_y = character_pos
+        # Convert character screen position to map position
+        char_map_x = char_x - self.map_x
+        char_map_y = char_y - self.map_y
+
+        # Use the levels manager to check proximity
+        nearby_level_id = self.levels_manager.check_proximity(char_map_x, char_map_y)
+
+        if nearby_level_id is not None:
+            self.active_level = nearby_level_id
+            # Create or update enter button position
+            button_x = char_x
+            button_y = char_y + 125
+
+            if self.enter_button is None:
+                self.create_enter_button(button_x, button_y)
+            else:
+                # Update button position
+                self.enter_button.rect.centerx = button_x
+                self.enter_button.rect.centery = button_y
+
+            self.enter_button.visible = True
+        else:
+            # Hide button if not near any level
+            if self.enter_button:
+                self.enter_button.visible = False
+            self.active_level = None
 
     def draw(self):
         """Draw the map, levels, and player icon on the screen."""
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.map, (self.map_x, self.map_y))
-
-        # Get current character frame and position
+        # Draw levels on the map using the levels manager
+        self.levels_manager.draw_levels(self.screen, self.map_x, self.map_y)
+        # Draw character
         self.character_movement.draw(self.screen)
-
+        # Draw enter button if it exists and is visible
+        if self.enter_button and self.enter_button.visible:
+            self.enter_button.draw(self.screen)
         # Draw back button
         self.back_button.draw()
 
@@ -97,6 +176,16 @@ class Map:
             # Handle back button
             self.back_button.update(event)
 
+            # Handle enter button if it exists and is visible
+            if self.enter_button and self.enter_button.visible:
+                self.enter_button.update(event)
+
+    def enter_level(self):
+        """Enter the currently active level."""
+        if self.active_level is not None:
+            # For now, just print which level was entered
+            print(f"Level {self.active_level} is clicked")
+
     def update_character_animation(self):
         """Update character animation frames"""
         self.character_movement.update_animation()
@@ -106,18 +195,13 @@ class Map:
         while self.running:
             # Handle events
             self.handle_events()
-
             # Handle character movement - this should be called every frame
             self.move_character()
-
             # Update animation
             self.update_character_animation()
-
             # Draw everything
             self.draw()
-
             # Update display
             pygame.display.flip()
-
             # Cap the frame rate
             self.clock.tick(FPS)
