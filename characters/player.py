@@ -15,13 +15,11 @@ class Player:
 
         # Scale image if needed (adjust scale factor as appropriate)
         scale_factor = 0.35  # Adjust this value based on your image size
-        self.image = pygame.transform.scale(self.image,
-                                            (int(self.image.get_width() * scale_factor),
-                                             int(self.image.get_height() * scale_factor)))
+        self.image = pygame.transform.scale(self.image,(int(self.image.get_width() * scale_factor),int(self.image.get_height() * scale_factor)))
 
         # Position the player on the left side of the screen
         self.rect = self.image.get_rect()
-        self.rect.x = 200  # Left side position
+        self.rect.x = 300  # Left side position
         self.rect.bottom = 700  # Adjust this value as needed
 
     def take_damage(self, amount):
@@ -44,8 +42,8 @@ class Player:
         # Draw HP bar
         bar_width = 200
         bar_height = 20
-        bar_x = self.rect.x
-        bar_y = self.rect.y - 30
+        bar_x = 100
+        bar_y = screen.get_height() - bar_height - 310
 
         # Background (empty) bar
         pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))

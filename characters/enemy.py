@@ -56,8 +56,8 @@ class Enemy:
         # Draw HP bar
         bar_width = 200
         bar_height = 20
-        bar_x = self.rect.x
-        bar_y = self.rect.y - 30
+        bar_x = screen.get_width() - bar_width - 100
+        bar_y = screen.get_height() - bar_height - 310
 
         # Background (empty) bar
         pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
