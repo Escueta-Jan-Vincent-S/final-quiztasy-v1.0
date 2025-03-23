@@ -171,11 +171,35 @@ class Map:
             if self.enter_button and self.enter_button.visible:
                 self.enter_button.update(event)
 
+    # Add this to your enter_level method in map.py
     def enter_level(self):
         """Enter the currently active level."""
         if self.active_level is not None:
-            # For now, just print which level was entered
             print(f"Level {self.active_level} is clicked")
+
+            # Import the battle and level modules
+            from gameplay.battle import Battle
+
+            # Import the appropriate level based on level ID
+            if self.active_level == 1:
+                from gameplay.level_1 import Level1
+                level = Level1(self.script_dir)
+            else:
+                # For other levels when you create them
+                # Default to level 1 for now
+                from gameplay.level_1 import Level1
+                level = Level1(self.script_dir)
+
+            # Start the battle with the player's hero type
+            battle = Battle(self.screen, self.script_dir, level, self.hero_type)
+            victory = battle.run()
+
+            # Handle battle result
+            if victory:
+                print("Victory! Level completed.")
+                # Here you could unlock the next level or provide rewards
+            else:
+                print("Defeat! Try again.")
 
     def update_character_animation(self):
         """Update character animation frames"""
