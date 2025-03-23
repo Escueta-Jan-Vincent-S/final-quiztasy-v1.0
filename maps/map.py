@@ -23,7 +23,7 @@ class Map:
 
         # Load and scale the map
         self.map_original = pygame.image.load(os.path.join(script_dir, "assets", "images", "map", "lspu_map.png"))
-        SCALE_FACTOR = 1.75
+        SCALE_FACTOR = 3
         self.map_width = int(self.map_original.get_width() * SCALE_FACTOR)
         self.map_height = int(self.map_original.get_height() * SCALE_FACTOR)
         self.map = pygame.transform.scale(self.map_original, (self.map_width, self.map_height))

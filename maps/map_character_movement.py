@@ -73,7 +73,7 @@ class MapCharacterMovement:
         ).convert_alpha()
 
         # Scale all animations to an appropriate size
-        scale_factor = 2.0  # Adjust as needed
+        scale_factor = 3.0  # Adjust as needed
         for direction in self.animations:
             for animation_type in self.animations[direction]:
                 img = self.animations[direction][animation_type]
