@@ -55,18 +55,16 @@ class Map:
         self.clock = pygame.time.Clock()
 
         # Set the character to spawn at level 1
-        self.spawn_at_level(1)
+        self.spawn_at_level(0)
 
     def spawn_at_level(self, level_id):
         """Spawn the character at the specified level."""
         # Get the level by ID
         level = self.levels_manager.get_level_by_id(level_id)
-
         if level:
             # Calculate map position to center the character on the level
             character_screen_x = SCREEN_WIDTH // 2
-            character_screen_y = SCREEN_HEIGHT // 2
-
+            character_screen_y = SCREEN_HEIGHT // 2 + 50
             # The map needs to be positioned so that the level is under the character
             self.map_x = character_screen_x - level["map_x"] - level["width"] // 2
             self.map_y = character_screen_y - level["map_y"] - level["height"] // 2
@@ -78,21 +76,17 @@ class Map:
                 'min_y': SCREEN_HEIGHT - self.map_height,
                 'max_y': 0,
             }
-
             self.map_x = max(min(self.map_x, map_bounds['max_x']), map_bounds['min_x'])
             self.map_y = max(min(self.map_y, map_bounds['max_y']), map_bounds['min_y'])
 
     def create_enter_button(self, x, y):
-        """Create an enter button at the specified position."""
         # Path to button images
         idle_img = os.path.join(self.script_dir, "assets", "images", "buttons", "enter level", "enter_btn_img.png")
         hover_img = os.path.join(self.script_dir, "assets", "images", "buttons", "enter level", "enter_btn_hover.png")
-
         # Create button
         self.enter_button = Button(x=x, y=y, idle_img=idle_img, hover_img=hover_img, action=self.enter_level, scale=0.5, audio_manager=self.audio_manager)
 
     def go_back(self):
-        """Handle back button action."""
         if self.audio_manager:
             self.audio_manager.play_sfx()  # Play sound effect when clicking back
         if self.go_back_callback:
@@ -103,14 +97,13 @@ class Map:
         """Handle character movement based on keyboard input."""
         # Get map boundaries for character movement
         map_bounds = {
-            'min_x': SCREEN_WIDTH - self.map_width,  # Rightmost limit (negative value)
-            'max_x': 0,  # Leftmost limit
-            'min_y': SCREEN_HEIGHT - self.map_height,  # Bottom limit (negative value)
-            'max_y': 0,  # Top limit
+            'min_x': SCREEN_WIDTH - self.map_width,
+            'max_x': 0,
+            'min_y': SCREEN_HEIGHT - self.map_height,
+            'max_y': 0,
             'width': self.map_width,
             'height': self.map_height
         }
-
         # Call the character movement handler
         map_adjustment, character_pos = self.character_movement.handle_movement(
             map_bounds,
@@ -130,10 +123,8 @@ class Map:
         char_map_x = char_x - self.map_x
         char_map_y = char_y - self.map_y
 
-        # Use the levels manager to check proximity
         nearby_level_id = self.levels_manager.check_proximity(char_map_x, char_map_y)
-
-        if nearby_level_id is not None:
+        if nearby_level_id is not None and nearby_level_id != 0:
             self.active_level = nearby_level_id
             # Create or update enter button position
             button_x = char_x

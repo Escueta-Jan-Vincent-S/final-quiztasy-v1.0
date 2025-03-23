@@ -11,17 +11,20 @@ class Levels:
     def load_levels(self):
         """Load level sprites and define their positions on the map."""
         # Load level images
+        spawn_img = pygame.image.load(os.path.join(self.script_dir, "assets", "images", "levels", "spawn_point.png"))
         level_1_img = pygame.image.load(os.path.join(self.script_dir, "assets", "images", "levels", "stage_1.png"))
         level_2_img = pygame.image.load(os.path.join(self.script_dir, "assets", "images", "levels", "stage_2.png"))
         level_3_img = pygame.image.load(os.path.join(self.script_dir, "assets", "images", "levels", "stage_3.png"))
 
         # Scale level images
         LEVEL_SCALE = 0.15
+        self.spawn_img = pygame.transform.scale(spawn_img,(int(spawn_img.get_width() * LEVEL_SCALE), int(spawn_img.get_height() * LEVEL_SCALE)))
         self.level_1_img = pygame.transform.scale(level_1_img, (int(level_1_img.get_width() * LEVEL_SCALE), int(level_1_img.get_height() * LEVEL_SCALE)))
         self.level_2_img = pygame.transform.scale(level_2_img, (int(level_2_img.get_width() * LEVEL_SCALE), int(level_2_img.get_height() * LEVEL_SCALE)))
         self.level_3_img = pygame.transform.scale(level_3_img, (int(level_3_img.get_width() * LEVEL_SCALE), int(level_3_img.get_height() * LEVEL_SCALE)))
 
         self.levels = [
+            {"id": 0, "img": self.spawn_img, "map_x": 1930, "map_y": 1830, "width": self.spawn_img.get_width(),"height": self.spawn_img.get_height(), "interaction_radius": 0},
             {"id": 1,"img": self.level_1_img,"map_x": 3000,"map_y": 1830,"width": self.level_1_img.get_width(),"height": self.level_1_img.get_height(),"interaction_radius": 75},
             {"id": 2,"img": self.level_2_img,"map_x": 4190,"map_y": 1450,"width": self.level_2_img.get_width(),"height": self.level_2_img.get_height(),"interaction_radius": 75},
             {"id": 3,"img": self.level_3_img,"map_x": 3375,"map_y": 550,"width": self.level_3_img.get_width(),"height": self.level_3_img.get_height(),"interaction_radius": 75}
