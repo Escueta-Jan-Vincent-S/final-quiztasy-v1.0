@@ -14,7 +14,7 @@ class Player:
         self.image = pygame.image.load(image_path)
 
         # Scale image if needed (adjust scale factor as appropriate)
-        scale_factor = 0.35  # Adjust this value based on your image size
+        scale_factor = 5  # Adjust this value based on your image size
         self.image = pygame.transform.scale(self.image,(int(self.image.get_width() * scale_factor),int(self.image.get_height() * scale_factor)))
 
         # Position the player on the left side of the screen
@@ -43,7 +43,7 @@ class Player:
         bar_width = 200
         bar_height = 20
         bar_x = 100
-        bar_y = screen.get_height() - bar_height - 310
+        bar_y = screen.get_height() - bar_height - 320
 
         # Background (empty) bar
         pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
