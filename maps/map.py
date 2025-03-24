@@ -184,9 +184,14 @@ class Map:
             if self.active_level == 1:
                 from gameplay.level_1 import Level1
                 level = Level1(self.script_dir)
+            elif self.active_level == 2:
+                from gameplay.level_2 import Level2
+                level = Level2(self.script_dir)
+            elif self.active_level == 3:
+                from gameplay.level_3 import Level3
+                level = Level3(self.script_dir)
             else:
-                # For other levels when you create them
-                # Default to level 1 for now
+                # Default to level 1 as fallback
                 from gameplay.level_1 import Level1
                 level = Level1(self.script_dir)
 
@@ -196,10 +201,10 @@ class Map:
 
             # Handle battle result
             if victory:
-                print("Victory! Level completed.")
+                print(f"Victory! Level {self.active_level} completed.")
                 # Here you could unlock the next level or provide rewards
             else:
-                print("Defeat! Try again.")
+                print(f"Defeat! Try level {self.active_level} again.")
 
     def update_character_animation(self):
         """Update character animation frames"""
