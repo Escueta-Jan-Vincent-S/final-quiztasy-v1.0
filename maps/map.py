@@ -6,6 +6,7 @@ from .map_character_movement import MapCharacterMovement
 from ui.button import Button
 from .levels import Levels
 
+
 class Map:
     def __init__(self, screen, script_dir, go_back_callback, audio_manager, hero_type=None):
         """Initialize the LSPU map with a Back button and navigation features."""
@@ -46,10 +47,11 @@ class Map:
 
         # Initialize levels
         self.levels_manager = Levels(script_dir)
+        # Pass screen and hero_type to the levels manager
+        self.levels_manager.set_context(self.screen, self.hero_type)
 
         # Initialize enter button (but don't create it yet - will be created dynamically)
         self.enter_button = None
-        self.active_level = None
 
         # Initialize clock for the run method
         self.clock = pygame.time.Clock()
@@ -83,8 +85,10 @@ class Map:
         # Path to button images
         idle_img = os.path.join(self.script_dir, "assets", "images", "buttons", "enter level", "enter_btn_img.png")
         hover_img = os.path.join(self.script_dir, "assets", "images", "buttons", "enter level", "enter_btn_hover.png")
-        # Create button
-        self.enter_button = Button(x=x, y=y, idle_img=idle_img, hover_img=hover_img, action=self.enter_level, scale=0.5, audio_manager=self.audio_manager)
+        # Create button - now using the levels_manager's enter_level method
+        self.enter_button = Button(x=x, y=y, idle_img=idle_img, hover_img=hover_img,
+                                   action=self.levels_manager.enter_level, scale=0.5,
+                                   audio_manager=self.audio_manager)
 
     def go_back(self):
         if self.audio_manager:
@@ -125,7 +129,9 @@ class Map:
 
         nearby_level_id = self.levels_manager.check_proximity(char_map_x, char_map_y)
         if nearby_level_id is not None and nearby_level_id != 0:
-            self.active_level = nearby_level_id
+            # Set active level in the levels manager
+            self.levels_manager.set_active_level(nearby_level_id)
+
             # Create or update enter button position
             button_x = char_x
             button_y = char_y + 125
@@ -142,7 +148,8 @@ class Map:
             # Hide button if not near any level
             if self.enter_button:
                 self.enter_button.visible = False
-            self.active_level = None
+            # Clear active level in the levels manager
+            self.levels_manager.set_active_level(None)
 
     def draw(self):
         """Draw the map, levels, and player icon on the screen."""
@@ -170,41 +177,6 @@ class Map:
             # Handle enter button if it exists and is visible
             if self.enter_button and self.enter_button.visible:
                 self.enter_button.update(event)
-
-    # Add this to your enter_level method in map.py
-    def enter_level(self):
-        """Enter the currently active level."""
-        if self.active_level is not None:
-            print(f"Level {self.active_level} is clicked")
-
-            # Import the battle and level modules
-            from gameplay.battle import Battle
-
-            # Import the appropriate level based on level ID
-            if self.active_level == 1:
-                from gameplay.level_1 import Level1
-                level = Level1(self.script_dir)
-            elif self.active_level == 2:
-                from gameplay.level_2 import Level2
-                level = Level2(self.script_dir)
-            elif self.active_level == 3:
-                from gameplay.level_3 import Level3
-                level = Level3(self.script_dir)
-            else:
-                # Default to level 1 as fallback
-                from gameplay.level_1 import Level1
-                level = Level1(self.script_dir)
-
-            # Start the battle with the player's hero type
-            battle = Battle(self.screen, self.script_dir, level, self.hero_type)
-            victory = battle.run()
-
-            # Handle battle result
-            if victory:
-                print(f"Victory! Level {self.active_level} completed.")
-                # Here you could unlock the next level or provide rewards
-            else:
-                print(f"Defeat! Try level {self.active_level} again.")
 
     def update_character_animation(self):
         """Update character animation frames"""
