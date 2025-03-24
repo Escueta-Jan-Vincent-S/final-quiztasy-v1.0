@@ -12,7 +12,6 @@ class Question:
         """Checks if the user's answer is correct"""
         return user_answer == self.answer
 
-
 class MathQuestion(Question):
     def __init__(self, difficulty=1):
         super().__init__()

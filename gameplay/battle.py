@@ -13,8 +13,8 @@ class Battle:
         self.level = level
         self.running = True
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.Font(FONT_PATH, 32)
-        self.small_font = pygame.font.Font(FONT_PATH, 24)
+        self.font = pygame.font.Font(FONT_PATH, 50)
+        self.small_font = pygame.font.Font(FONT_PATH, 30)
 
         # Initialize player and enemy
         self.player = Player(script_dir, player_type)
