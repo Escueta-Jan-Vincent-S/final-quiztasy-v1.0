@@ -1,9 +1,9 @@
 import pygame
 import time
+import os
 from characters.player import Player
 from gameplay.questions import QuestionGenerator
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, FONT_PATH
-
 
 
 class Battle:
@@ -29,8 +29,38 @@ class Battle:
         self.battle_message = ""
         self.message_timer = 0
 
+        # Save the current map OST for restoration later
+        self.player_type = player_type
+        self.map_ost = self.get_map_ost_path()
+
         # Initialize first question
         self.generate_new_question()
+
+        # Load and play battle music
+        self.battle_music = self.load_battle_music()
+        if self.battle_music:
+            pygame.mixer.music.load(self.battle_music)
+            pygame.mixer.music.play(-1)  # Loop the battle music
+
+    def get_map_ost_path(self):
+        """Get the path to the map OST based on player type."""
+        return os.path.join(self.script_dir, "assets", "audio", "ost", self.player_type,
+                            f"{self.player_type}_map_ost.mp3")
+
+    def load_battle_music(self):
+        """Load the appropriate battle music based on the player type."""
+        if self.player_type == "boy":
+            return os.path.join(self.script_dir, "assets", "audio", "ost", "battle", "boy_battle_ost.mp3")
+        elif self.player_type == "girl":
+            return os.path.join(self.script_dir, "assets", "audio", "ost", "battle", "girl_battle_ost.mp3")
+        return None
+
+    def stop_battle_music(self):
+        """Stop the battle music and restore map music."""
+        pygame.mixer.music.stop()
+        # Restore the map OST
+        pygame.mixer.music.load(self.map_ost)
+        pygame.mixer.music.play(-1)  # Loop the map music
 
     def generate_new_question(self):
         """Generates a new question for the battle"""
@@ -206,6 +236,9 @@ class Battle:
 
             # Cap the frame rate
             self.clock.tick(FPS)
+
+        # Stop battle music and restore map music when the battle ends
+        self.stop_battle_music()
 
         # Return result (True for victory, False for defeat)
         return self.enemy.hp <= 0
