@@ -56,7 +56,7 @@ class Map:
         # Initialize clock for the run method
         self.clock = pygame.time.Clock()
 
-        # Set the character to spawn at level 1
+        # Set the character to spawn at level 0
         self.spawn_at_level(0)
 
     def spawn_at_level(self, level_id):
