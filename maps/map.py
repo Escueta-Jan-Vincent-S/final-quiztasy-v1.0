@@ -86,9 +86,7 @@ class Map:
         idle_img = os.path.join(self.script_dir, "assets", "images", "buttons", "enter level", "enter_btn_img.png")
         hover_img = os.path.join(self.script_dir, "assets", "images", "buttons", "enter level", "enter_btn_hover.png")
         # Create button - now using the levels_manager's enter_level method
-        self.enter_button = Button(x=x, y=y, idle_img=idle_img, hover_img=hover_img,
-                                   action=self.levels_manager.enter_level, scale=0.5,
-                                   audio_manager=self.audio_manager)
+        self.enter_button = Button(x=x, y=y, idle_img=idle_img, hover_img=hover_img, action=self.levels_manager.enter_level, scale=0.5, audio_manager=self.audio_manager)
 
     def go_back(self):
         if self.audio_manager:

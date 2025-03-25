@@ -5,7 +5,6 @@ from characters.player import Player
 from gameplay.questions import QuestionGenerator
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, FONT_PATH
 
-
 class Battle:
     def __init__(self, screen, script_dir, level, player_type="boy"):
         self.screen = screen
