@@ -35,7 +35,8 @@ class Battle:
         self.player_type = player_type
         self.map_ost = self.get_map_ost_path()
 
-        self.pause_menu = Pause(screen, script_dir, audio_manager)  # Add pause menu
+        # Intitialize pause menu
+        self.pause_menu = Pause(screen, script_dir, audio_manager)
 
         # Initialize first question
         self.generate_new_question()
@@ -48,8 +49,7 @@ class Battle:
 
     def get_map_ost_path(self):
         """Get the path to the map OST based on player type."""
-        return os.path.join(self.script_dir, "assets", "audio", "ost", self.player_type,
-                            f"{self.player_type}_map_ost.mp3")
+        return os.path.join(self.script_dir, "assets", "audio", "ost", self.player_type, f"{self.player_type}_map_ost.mp3")
 
     def load_battle_music(self):
         """Load the appropriate battle music based on the player type."""
@@ -105,7 +105,7 @@ class Battle:
                 self.running = False
 
             # Only process other events if not paused
-            if not self.pause_menu.paused:
+            if not self.pause_menu.is_paused():
                 if event.type == pygame.MOUSEMOTION:
                     # Check if mouse is hovering over any answer button
                     mouse_pos = pygame.mouse.get_pos()
@@ -157,11 +157,18 @@ class Battle:
 
     def update_timer(self):
         """Updates the time left to answer the question"""
-        # Don't update timer if game is paused
-        if self.pause_menu.paused:
+        # If paused, don't update anything
+        if self.pause_menu.is_paused():
             return
 
-        self.time_left = max(0, self.level.get_timer_seconds() - (time.time() - self.timer_start))
+        # Adjust timer for any time spent paused
+        paused_time = self.pause_menu.get_total_paused_time()
+        if paused_time > 0:
+            self.timer_start += paused_time  # Move the start time forward by paused duration
+
+        # Calculate remaining time
+        elapsed = time.time() - self.timer_start
+        self.time_left = max(0, self.level.get_timer_seconds() - elapsed)
 
         # If time runs out, treat as wrong answer
         if self.time_left <= 0 and self.running:
@@ -189,7 +196,7 @@ class Battle:
         self.player.draw(self.screen)
         self.enemy.draw(self.screen)
 
-        # Draw timer at the top of the screen
+        # Draw timer
         timer_text = self.font.render(f"Time: {int(self.time_left)}", True, (255, 255, 255))
         timer_rect = timer_text.get_rect(center=(SCREEN_WIDTH // 2, 50))
         pygame.draw.rect(self.screen, (0, 0, 0),
@@ -197,7 +204,7 @@ class Battle:
                           timer_rect.width + 20, timer_rect.height + 20))
         self.screen.blit(timer_text, timer_rect)
 
-        # Draw question box at the bottom
+        # Draw question box
         question_box = pygame.Rect(50, SCREEN_HEIGHT - 300, SCREEN_WIDTH - 100, 200)
         pygame.draw.rect(self.screen, (0, 0, 0, 200), question_box)
         pygame.draw.rect(self.screen, (255, 255, 255), question_box, 3)
@@ -207,25 +214,18 @@ class Battle:
         question_rect = question_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 250))
         self.screen.blit(question_text, question_rect)
 
-        # Draw answer buttons (only if not paused)
-        if not self.pause_menu.paused:
+        # Draw answer buttons if not paused
+        if not self.pause_menu.is_paused():
             for button in self.answer_buttons:
-                # Button colors change based on hover state
-                if button['hovered']:
-                    color = (100, 100, 255)
-                else:
-                    color = (50, 50, 200)
-
+                color = (100, 100, 255) if button['hovered'] else (50, 50, 200)
                 pygame.draw.rect(self.screen, color, button['rect'])
                 pygame.draw.rect(self.screen, (255, 255, 255), button['rect'], 2)
-
-                # Button text
                 text = self.small_font.render(button['text'], True, (255, 255, 255))
                 text_rect = text.get_rect(center=button['rect'].center)
                 self.screen.blit(text, text_rect)
 
-        # Draw battle message if there is one
-        if self.battle_message and time.time() - self.message_timer < 2:  # Show message for 2 seconds
+        # Draw battle message
+        if self.battle_message and time.time() - self.message_timer < 2:
             message_text = self.font.render(self.battle_message, True, (255, 255, 0))
             message_rect = message_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
             pygame.draw.rect(self.screen, (0, 0, 0),
@@ -233,20 +233,8 @@ class Battle:
                               message_rect.width + 20, message_rect.height + 20))
             self.screen.blit(message_text, message_rect)
 
-        # Draw pause button (always visible)
+        # Draw pause menu (button and overlay if paused)
         self.pause_menu.draw()
-
-        # Draw pause overlay if paused
-        if self.pause_menu.paused:
-            # Create a semi-transparent overlay
-            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 128))
-            self.screen.blit(overlay, (0, 0))
-
-            # Draw "PAUSED" text
-            paused_text = self.font.render("PAUSED", True, (255, 255, 255))
-            paused_rect = paused_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-            self.screen.blit(paused_text, paused_rect)
 
     def run(self):
         """Main battle loop"""
