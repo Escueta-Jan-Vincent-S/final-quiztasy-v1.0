@@ -24,22 +24,20 @@ class Pause:
         self.pause_idle = self.load_scaled_image(pause_idle_path)
         self.pause_hover = self.load_scaled_image(pause_hover_path)
 
-        # Create pause button
-        self.button = Button(
-            x=100,
-            y=100,
-            idle_img=self.pause_idle,
-            hover_img=self.pause_hover,
-            action=self.toggle_pause,
-            scale=0.15,
-            audio_manager=self.audio_manager
-        )
+        # Border of Pause
+        border_path = os.path.join(script_dir, "assets", "images", "battle", "pause", "pause_border.png")
+        self.border_img = self.load_scaled_image(border_path, 0.6)  # Scale the border to 80% of original size
 
-    def load_scaled_image(self, path):
+        # Create pause button
+        self.button = Button(x=100,y=100,idle_img=self.pause_idle,hover_img=self.pause_hover,action=self.toggle_pause,scale=0.15,audio_manager=self.audio_manager)
+
+    def load_scaled_image(self, path, scale=None):
+        """Load an image and scale it. If scale is None, use self.scale"""
         image = pygame.image.load(path).convert_alpha()
-        if self.scale != 1.0:
-            new_width = int(image.get_width() * self.scale)
-            new_height = int(image.get_height() * self.scale)
+        scale_factor = scale if scale is not None else self.scale
+        if scale_factor != 1.0:
+            new_width = int(image.get_width() * scale_factor)
+            new_height = int(image.get_height() * scale_factor)
             return pygame.transform.scale(image, (new_width, new_height))
         return image
 
@@ -71,10 +69,9 @@ class Pause:
             overlay.fill((0, 0, 0, 128))
             self.screen.blit(overlay, (0, 0))
 
-            # Draw "PAUSED" text
-            paused_text = self.font.render("PAUSED", True, (255, 255, 255))
-            paused_rect = paused_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-            self.screen.blit(paused_text, paused_rect)
+            # Draw border image centered on screen
+            border_rect = self.border_img.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            self.screen.blit(self.border_img, border_rect)
 
     def draw(self):
         """Draw the pause button (always visible)"""
