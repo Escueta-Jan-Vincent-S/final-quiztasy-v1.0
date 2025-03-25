@@ -5,8 +5,8 @@ class Level1:
     def __init__(self, script_dir):
         self.script_dir = script_dir
         self.level_id = 1
-        self.name = "LSPU Main Gate"
-        self.description = "The entrance to LSPU. Test your basic knowledge!"
+        self.name = "Level 1"
+        self.description = "Basta Level 1"
 
         # Level-specific settings
         self.enemy_hp = 5
