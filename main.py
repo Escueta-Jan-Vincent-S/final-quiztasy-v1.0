@@ -28,8 +28,7 @@ class FinalQuiztasy:
         # Initialize game components
         self.setup_background()
         self.setup_audio()
-        self.main_menu = MainMenu(self.screen, self.audio_manager, self.script_dir, exit_callback=self.exit_game,
-                                  game_instance=self)
+        self.main_menu = MainMenu(self.screen, self.audio_manager, self.script_dir, exit_callback=self.exit_game, game_instance=self)
         self.hero_selection = HeroSelection(self, self.background_menu)  # Pass background_menu
         self.game_modes = GameModes(self.screen, self.audio_manager, self.script_dir, scale=1.0, game_instance=self)
         self.lspu_map = None
