@@ -14,6 +14,9 @@ class Pause:
         self.scale = scale
         self.pause_start_time = 0
         self.total_paused_time = 0
+        self.show_confirmation = False
+        self.confirmation_type = None  # 'menu' or 'map'
+        self.confirmation_buttons = []
 
         # Load fonts
         self.font = pygame.font.Font(FONT_PATH, 50)
@@ -27,6 +30,11 @@ class Pause:
         # Load pause border image
         border_path = os.path.join(script_dir, "assets", "images", "battle", "pause", "pause_border.png")
         self.border_img = self.load_scaled_image(border_path, 0.5)
+
+        # Load confirmation border image
+        confirm_border_path = os.path.join(script_dir, "assets", "images", "battle", "pause", "confirmation",
+                                           "yesorno_border.png")
+        self.confirm_border_img = self.load_scaled_image(confirm_border_path, 0.65)
 
         # Create pause button
         self.pause_button = Button(
@@ -49,12 +57,12 @@ class Pause:
             {
                 "name": "menu",
                 "pos": (SCREEN_WIDTH // 2 - 250, SCREEN_HEIGHT // 2 + 25),
-                "action": self.return_to_menu
+                "action": self.show_menu_confirmation
             },
             {
                 "name": "map",
                 "pos": (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2),
-                "action": self.open_map
+                "action": self.show_map_confirmation
             },
             {
                 "name": "resume",
@@ -66,11 +74,13 @@ class Pause:
         for icon in icons:
             # Load icon images
             idle_img = self.load_scaled_image(
-                os.path.join(self.script_dir, "assets", "images", "battle", "pause", icon["name"], f"{icon['name']}_icon_img.png"),
+                os.path.join(self.script_dir, "assets", "images", "battle", "pause", icon["name"],
+                             f"{icon['name']}_icon_img.png"),
                 0.25
             )
             hover_img = self.load_scaled_image(
-                os.path.join(self.script_dir, "assets", "images", "battle", "pause", icon["name"], f"{icon['name']}_icon_hover.png"),
+                os.path.join(self.script_dir, "assets", "images", "battle", "pause", icon["name"],
+                             f"{icon['name']}_icon_hover.png"),
                 0.25
             )
 
@@ -86,6 +96,79 @@ class Pause:
             )
 
             self.pause_icons.append(button)
+
+    def init_confirmation_buttons(self):
+        """Initialize confirmation dialog buttons"""
+        self.confirmation_buttons = []
+
+        # Load button images
+        yes_idle = self.load_scaled_image(
+            os.path.join(self.script_dir, "assets", "images", "battle", "pause", "confirmation", "yes_btn_img.png"),
+            0.4
+        )
+        yes_hover = self.load_scaled_image(
+            os.path.join(self.script_dir, "assets", "images", "battle", "pause", "confirmation", "yes_btn_hover.png"),
+            0.4
+        )
+
+        no_idle = self.load_scaled_image(
+            os.path.join(self.script_dir, "assets", "images", "battle", "pause", "confirmation", "no_btn_img.png"),
+            0.4
+        )
+        no_hover = self.load_scaled_image(
+            os.path.join(self.script_dir, "assets", "images", "battle", "pause", "confirmation", "no_btn_hover.png"),
+            0.4
+        )
+
+        # Create buttons
+        yes_button = Button(
+            x=SCREEN_WIDTH // 2 - 250,
+            y=SCREEN_HEIGHT // 2 + 150,
+            idle_img=yes_idle,
+            hover_img=yes_hover,
+            action=self.confirm_action,
+            scale=1,
+            audio_manager=self.audio_manager
+        )
+
+        no_button = Button(
+            x=SCREEN_WIDTH // 2 + 250,
+            y=SCREEN_HEIGHT // 2 + 150,
+            idle_img=no_idle,
+            hover_img=no_hover,
+            action=self.cancel_confirmation,
+            scale=1,
+            audio_manager=self.audio_manager
+        )
+
+        self.confirmation_buttons.extend([yes_button, no_button])
+
+    def show_menu_confirmation(self):
+        """Show confirmation dialog for returning to menu"""
+        self.show_confirmation = True
+        self.confirmation_type = 'menu'
+        self.init_confirmation_buttons()
+
+    def show_map_confirmation(self):
+        """Show confirmation dialog for opening map"""
+        self.show_confirmation = True
+        self.confirmation_type = 'map'
+        self.init_confirmation_buttons()
+
+    def confirm_action(self):
+        """Handle confirmation (Yes button click)"""
+        print(f"Yes clicked for {self.confirmation_type}")
+        if self.confirmation_type == 'menu':
+            self.return_to_menu()
+        elif self.confirmation_type == 'map':
+            self.open_map()
+        self.cancel_confirmation()
+
+    def cancel_confirmation(self):
+        """Cancel confirmation dialog (No button click)"""
+        self.show_confirmation = False
+        self.confirmation_type = None
+        self.confirmation_buttons = []
 
     def load_scaled_image(self, path, scale=None):
         """Load an image and scale it. If scale is None, use self.scale"""
@@ -112,13 +195,13 @@ class Pause:
 
     def return_to_menu(self):
         """Return to main menu function"""
-        print(f"Returning to menu...")  # Replace with actual menu return logic
+        print("Returning to menu...")
         if self.audio_manager:
             self.audio_manager.play_sfx()
 
     def open_map(self):
         """Open map function"""
-        print(f"Opening map...")  # Replace with actual map opening logic
+        print("Opening map...")
         if self.audio_manager:
             self.audio_manager.play_sfx()
 
@@ -136,13 +219,22 @@ class Pause:
             overlay.fill((0, 0, 0, 128))
             self.screen.blit(overlay, (0, 0))
 
-            # Draw border image centered on screen
-            border_rect = self.border_img.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-            self.screen.blit(self.border_img, border_rect)
+            if not self.show_confirmation:
+                # Draw normal pause menu
+                border_rect = self.border_img.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+                self.screen.blit(self.border_img, border_rect)
 
-            # Draw pause icons
-            for icon in self.pause_icons:
-                icon.draw(self.screen)
+                # Draw pause icons
+                for icon in self.pause_icons:
+                    icon.draw(self.screen)
+            else:
+                # Draw confirmation dialog
+                confirm_rect = self.confirm_border_img.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+                self.screen.blit(self.confirm_border_img, confirm_rect)
+
+                # Draw confirmation buttons
+                for button in self.confirmation_buttons:
+                    button.draw(self.screen)
 
     def draw(self):
         """Draw the pause button (always visible) and overlay when paused"""
@@ -155,9 +247,14 @@ class Pause:
         if not self.paused:
             self.pause_button.update(event)
         else:
-            # Handle events for pause menu icons
-            for icon in self.pause_icons:
-                icon.update(event)
+            if self.show_confirmation:
+                # Handle confirmation dialog events
+                for button in self.confirmation_buttons:
+                    button.update(event)
+            else:
+                # Handle pause menu events
+                for icon in self.pause_icons:
+                    icon.update(event)
 
     def is_paused(self):
         """Check if game is paused"""
