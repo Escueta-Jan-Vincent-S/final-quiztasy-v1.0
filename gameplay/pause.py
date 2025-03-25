@@ -24,12 +24,68 @@ class Pause:
         self.pause_idle = self.load_scaled_image(pause_idle_path)
         self.pause_hover = self.load_scaled_image(pause_hover_path)
 
-        # Border of Pause
+        # Load pause border image
         border_path = os.path.join(script_dir, "assets", "images", "battle", "pause", "pause_border.png")
-        self.border_img = self.load_scaled_image(border_path, 0.6)  # Scale the border to 80% of original size
+        self.border_img = self.load_scaled_image(border_path, 0.5)
 
         # Create pause button
-        self.button = Button(x=100,y=100,idle_img=self.pause_idle,hover_img=self.pause_hover,action=self.toggle_pause,scale=0.15,audio_manager=self.audio_manager)
+        self.pause_button = Button(
+            x=100,
+            y=100,
+            idle_img=self.pause_idle,
+            hover_img=self.pause_hover,
+            action=self.toggle_pause,
+            scale=0.15,
+            audio_manager=self.audio_manager
+        )
+
+        # Initialize pause menu icons only
+        self.pause_icons = []
+        self.init_pause_icons()
+
+    def init_pause_icons(self):
+        """Initialize the pause menu icons"""
+        icons = [
+            {
+                "name": "menu",
+                "pos": (SCREEN_WIDTH // 2 - 250, SCREEN_HEIGHT // 2 + 25),
+                "action": self.return_to_menu
+            },
+            {
+                "name": "map",
+                "pos": (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2),
+                "action": self.open_map
+            },
+            {
+                "name": "resume",
+                "pos": (SCREEN_WIDTH // 2 + 250, SCREEN_HEIGHT // 2 + 25),
+                "action": self.toggle_pause
+            },
+        ]
+
+        for icon in icons:
+            # Load icon images
+            idle_img = self.load_scaled_image(
+                os.path.join(self.script_dir, "assets", "images", "battle", "pause", icon["name"], f"{icon['name']}_icon_img.png"),
+                0.25
+            )
+            hover_img = self.load_scaled_image(
+                os.path.join(self.script_dir, "assets", "images", "battle", "pause", icon["name"], f"{icon['name']}_icon_hover.png"),
+                0.25
+            )
+
+            # Create icon
+            button = Button(
+                x=icon["pos"][0],
+                y=icon["pos"][1],
+                idle_img=idle_img,
+                hover_img=hover_img,
+                action=icon["action"],
+                scale=1,
+                audio_manager=self.audio_manager
+            )
+
+            self.pause_icons.append(button)
 
     def load_scaled_image(self, path, scale=None):
         """Load an image and scale it. If scale is None, use self.scale"""
@@ -48,17 +104,28 @@ class Pause:
             self.audio_manager.play_sfx()
 
             if self.paused:
-                self.pause_start_time = time.time()  # Record when pause started
+                self.pause_start_time = time.time()
                 pygame.mixer.music.pause()
             else:
-                # Calculate how long we were paused
                 self.total_paused_time += time.time() - self.pause_start_time
                 pygame.mixer.music.unpause()
+
+    def return_to_menu(self):
+        """Return to main menu function"""
+        print(f"Returning to menu...")  # Replace with actual menu return logic
+        if self.audio_manager:
+            self.audio_manager.play_sfx()
+
+    def open_map(self):
+        """Open map function"""
+        print(f"Opening map...")  # Replace with actual map opening logic
+        if self.audio_manager:
+            self.audio_manager.play_sfx()
 
     def get_total_paused_time(self):
         """Returns the total time spent paused and resets the counter"""
         paused_time = self.total_paused_time
-        self.total_paused_time = 0  # Reset after getting
+        self.total_paused_time = 0
         return paused_time
 
     def draw_pause_overlay(self):
@@ -73,14 +140,24 @@ class Pause:
             border_rect = self.border_img.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
             self.screen.blit(self.border_img, border_rect)
 
+            # Draw pause icons
+            for icon in self.pause_icons:
+                icon.draw(self.screen)
+
     def draw(self):
-        """Draw the pause button (always visible)"""
-        self.button.draw(self.screen)
+        """Draw the pause button (always visible) and overlay when paused"""
+        if not self.paused:
+            self.pause_button.draw(self.screen)
         self.draw_pause_overlay()
 
     def update(self, event):
         """Handle pause button events"""
-        self.button.update(event)
+        if not self.paused:
+            self.pause_button.update(event)
+        else:
+            # Handle events for pause menu icons
+            for icon in self.pause_icons:
+                icon.update(event)
 
     def is_paused(self):
         """Check if game is paused"""
