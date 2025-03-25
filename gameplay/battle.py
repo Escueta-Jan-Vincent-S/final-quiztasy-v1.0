@@ -3,10 +3,12 @@ import time
 import os
 from characters.player import Player
 from gameplay.questions import QuestionGenerator
+from managers.audio_manager import AudioManager
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, FONT_PATH
+from .pause import Pause
 
 class Battle:
-    def __init__(self, screen, script_dir, level, player_type="boy"):
+    def __init__(self, screen, script_dir, level, player_type="boy", audio_manager=None):
         self.screen = screen
         self.script_dir = script_dir
         self.level = level
@@ -14,6 +16,7 @@ class Battle:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(FONT_PATH, 50)
         self.small_font = pygame.font.Font(FONT_PATH, 30)
+        self.audio_manager = audio_manager
 
         # Initialize player and enemy
         self.player = Player(script_dir, player_type)
@@ -31,6 +34,8 @@ class Battle:
         # Save the current map OST for restoration later
         self.player_type = player_type
         self.map_ost = self.get_map_ost_path()
+
+        self.pause_menu = Pause(screen, script_dir, audio_manager)  # Add pause menu
 
         # Initialize first question
         self.generate_new_question()
@@ -99,19 +104,24 @@ class Battle:
             if event.type == pygame.QUIT:
                 self.running = False
 
-            elif event.type == pygame.MOUSEMOTION:
-                # Check if mouse is hovering over any answer button
-                mouse_pos = pygame.mouse.get_pos()
-                for button in self.answer_buttons:
-                    button['hovered'] = button['rect'].collidepoint(mouse_pos)
+            # Only process other events if not paused
+            if not self.pause_menu.paused:
+                if event.type == pygame.MOUSEMOTION:
+                    # Check if mouse is hovering over any answer button
+                    mouse_pos = pygame.mouse.get_pos()
+                    for button in self.answer_buttons:
+                        button['hovered'] = button['rect'].collidepoint(mouse_pos)
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                # Check if an answer button was clicked
-                mouse_pos = pygame.mouse.get_pos()
-                for button in self.answer_buttons:
-                    if button['rect'].collidepoint(mouse_pos):
-                        self.selected_answer = button['value']
-                        self.check_answer()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # Check if an answer button was clicked
+                    mouse_pos = pygame.mouse.get_pos()
+                    for button in self.answer_buttons:
+                        if button['rect'].collidepoint(mouse_pos):
+                            self.selected_answer = button['value']
+                            self.check_answer()
+
+            # Always process pause menu events
+            self.pause_menu.update(event)
 
     def check_answer(self):
         """Checks if the selected answer is correct"""
@@ -147,6 +157,10 @@ class Battle:
 
     def update_timer(self):
         """Updates the time left to answer the question"""
+        # Don't update timer if game is paused
+        if self.pause_menu.paused:
+            return
+
         self.time_left = max(0, self.level.get_timer_seconds() - (time.time() - self.timer_start))
 
         # If time runs out, treat as wrong answer
@@ -193,21 +207,22 @@ class Battle:
         question_rect = question_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 250))
         self.screen.blit(question_text, question_rect)
 
-        # Draw answer buttons
-        for button in self.answer_buttons:
-            # Button colors change based on hover state
-            if button['hovered']:
-                color = (100, 100, 255)
-            else:
-                color = (50, 50, 200)
+        # Draw answer buttons (only if not paused)
+        if not self.pause_menu.paused:
+            for button in self.answer_buttons:
+                # Button colors change based on hover state
+                if button['hovered']:
+                    color = (100, 100, 255)
+                else:
+                    color = (50, 50, 200)
 
-            pygame.draw.rect(self.screen, color, button['rect'])
-            pygame.draw.rect(self.screen, (255, 255, 255), button['rect'], 2)
+                pygame.draw.rect(self.screen, color, button['rect'])
+                pygame.draw.rect(self.screen, (255, 255, 255), button['rect'], 2)
 
-            # Button text
-            text = self.small_font.render(button['text'], True, (255, 255, 255))
-            text_rect = text.get_rect(center=button['rect'].center)
-            self.screen.blit(text, text_rect)
+                # Button text
+                text = self.small_font.render(button['text'], True, (255, 255, 255))
+                text_rect = text.get_rect(center=button['rect'].center)
+                self.screen.blit(text, text_rect)
 
         # Draw battle message if there is one
         if self.battle_message and time.time() - self.message_timer < 2:  # Show message for 2 seconds
@@ -217,6 +232,21 @@ class Battle:
                              (message_rect.x - 10, message_rect.y - 10,
                               message_rect.width + 20, message_rect.height + 20))
             self.screen.blit(message_text, message_rect)
+
+        # Draw pause button (always visible)
+        self.pause_menu.draw()
+
+        # Draw pause overlay if paused
+        if self.pause_menu.paused:
+            # Create a semi-transparent overlay
+            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 128))
+            self.screen.blit(overlay, (0, 0))
+
+            # Draw "PAUSED" text
+            paused_text = self.font.render("PAUSED", True, (255, 255, 255))
+            paused_rect = paused_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            self.screen.blit(paused_text, paused_rect)
 
     def run(self):
         """Main battle loop"""

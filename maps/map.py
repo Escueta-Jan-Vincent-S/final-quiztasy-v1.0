@@ -48,7 +48,7 @@ class Map:
         # Initialize levels
         self.levels_manager = Levels(script_dir)
         # Pass screen and hero_type to the levels manager
-        self.levels_manager.set_context(self.screen, self.hero_type)
+        self.levels_manager.set_context(self.screen, self.hero_type, self.audio_manager)
 
         # Initialize enter button (but don't create it yet - will be created dynamically)
         self.enter_button = None

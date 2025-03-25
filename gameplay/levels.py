@@ -60,10 +60,11 @@ class Levels:
             for lvl_id, name, x, y, radius in level_data
         ]
 
-    def set_context(self, screen, hero_type):
+    def set_context(self, screen, hero_type, audio_manager=None):
         """Set the screen and hero type needed for the enter_level method."""
         self.screen = screen
         self.hero_type = hero_type
+        self.audio_manager = audio_manager
 
     def get_level_by_id(self, level_id):
         """Get a level by its ID."""
@@ -115,7 +116,7 @@ class Levels:
                 level = Level1(self.script_dir)
             # Start the battle with the player's hero type
 
-            battle = Battle(self.screen, self.script_dir, level, self.hero_type)
+            battle = Battle(self.screen, self.script_dir, level, self.hero_type, self.audio_manager)
             victory = battle.run()
 
             # Handle battle result

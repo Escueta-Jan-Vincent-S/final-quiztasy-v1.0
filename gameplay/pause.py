@@ -39,12 +39,13 @@ class Pause:
         """Toggle pause state and play click sound"""
         self.paused = not self.paused
         if self.audio_manager:
-            self.audio_manager.play_sfx("click")
+            self.audio_manager.play_sfx()
 
             if self.paused:
                 pygame.mixer.music.pause()
             else:
                 pygame.mixer.music.unpause()
+
     def draw(self):
         self.button.draw(self.screen)
 
