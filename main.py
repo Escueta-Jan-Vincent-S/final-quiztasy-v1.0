@@ -7,7 +7,7 @@ from ui.main_menu import MainMenu
 from ui.game_modes import GameModes
 from ui.hero_selection import HeroSelection
 from maps.map import Map
-
+from gameplay.battle import Battle
 
 class FinalQuiztasy:
     def __init__(self):
@@ -32,6 +32,7 @@ class FinalQuiztasy:
         self.hero_selection = HeroSelection(self, self.background_menu)  # Pass background_menu
         self.game_modes = GameModes(self.screen, self.audio_manager, self.script_dir, scale=1.0, game_instance=self)
         self.lspu_map = None
+        self.battle = None
 
         # Clock for controlling frame rate
         self.clock = pygame.time.Clock()
@@ -65,28 +66,19 @@ class FinalQuiztasy:
         if self.audio_manager.audio_enabled:
             self.audio_manager.play_music()
 
-        # Load the map with a callback to return to the main menu
-        self.lspu_map = Map(self.screen, self.script_dir, self.return_to_main_menu, self.audio_manager, self.selected_hero)
+        # Create the LSPU map
+        self.lspu_map = Map(
+            self.screen,
+            self.script_dir,
+            self.return_to_main_menu,
+            self.audio_manager,
+            self.selected_hero,
+            game_instance=self
+        )
         self.hero_selection.hide()
-        self.running_map = True
 
-        # Run the map loop
-        while self.running_map:
-            # Handle events (e.g., back button, quit)
-            self.lspu_map.handle_events()
-
-            # Handle character movement and animation
-            self.lspu_map.move_character()
-            self.lspu_map.update_character_animation()
-
-            # Draw the map and character
-            self.lspu_map.draw()
-
-            # Update the display
-            pygame.display.update()
-
-            # Cap the frame rate
-            self.clock.tick(FPS)
+        # Simply run the map - it will handle its own loop
+        self.lspu_map.run()
 
         # Stop hero-specific map music when exiting
         self.audio_manager.stop_music()
@@ -96,10 +88,21 @@ class FinalQuiztasy:
         if self.audio_manager.audio_enabled:
             self.audio_manager.play_music()
 
+    def start_battle(self, level, player_type):
+        """Starts the battle when entering a level"""
+        self.battle = Battle(self.screen, self.script_dir, level, player_type, self.audio_manager, game_instance=self)
+        self.battle.run()
+
     def return_to_main_menu(self):
         """Callback function to return to the main menu."""
-        self.running_map = False  # Stop the map loop
-        self.main_menu.show()  # Show the main menu
+        print("Switching to main menu")
+        self.running_map = False  # Stop map loop if it's running
+        self.main_menu.show()  # Ensure the main menu appears
+        # Also make sure to reset any necessary states
+        if hasattr(self, 'lspu_map'):
+            self.lspu_map = None
+        if hasattr(self, 'battle'):
+            self.battle = None
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -134,8 +137,6 @@ class FinalQuiztasy:
         self.background_menu.close()
         pygame.quit()
 
-
-# Create and run the game
 if __name__ == "__main__":
     game = FinalQuiztasy()
     game.run()

@@ -12,24 +12,23 @@ class Levels:
         self.active_level = None
         self.screen = None
         self.hero_type = None
+        self.audio_manager = None  # Add audio_manager here
+        self.game_instance = None  # Add game_instance here
 
     def load_levels(self):
         """Load level sprites and define their positions on the map."""
         LEVEL_SCALE = 0.15
-        level_names = ["spawn_point"] + [f"stage_{i}" for i in range(1, 21)]  # Includes spawn and 20 levels
-
+        level_names = ["spawn_point"] + [f"stage_{i}" for i in range(1, 21)] # Includes spawn and 20 levels
         # Load and scale images dynamically
         self.level_images = {
             name: pygame.transform.scale(
                 pygame.image.load(os.path.join(self.script_dir, "assets", "images", "levels", f"{name}.png")),
                 (int(pygame.image.load(os.path.join(self.script_dir, "assets", "images", "levels",
-                                                    f"{name}.png")).get_width() * LEVEL_SCALE),
+                    f"{name}.png")).get_width() * LEVEL_SCALE),
                  int(pygame.image.load(os.path.join(self.script_dir, "assets", "images", "levels",
-                                                    f"{name}.png")).get_height() * LEVEL_SCALE))
-            )
-            for name in level_names
+                    f"{name}.png")).get_height() * LEVEL_SCALE))
+            ) for name in level_names
         }
-
         # Define level positions and interaction radii
         level_data = [
             (0, "spawn_point", 1930, 1830, 0),
@@ -54,17 +53,18 @@ class Levels:
             (19, "stage_19", 9825, 1600, 75),
             (20, "stage_20", 9700, 600, 75),
         ]
-
         self.levels = [
-            {"id": lvl_id,"img": self.level_images[name],"map_x": x,"map_y": y,"width": self.level_images[name].get_width(),"height": self.level_images[name].get_height(),"interaction_radius": radius}
+            {"id": lvl_id, "img": self.level_images[name], "map_x": x, "map_y": y, "width": self.level_images[name].get_width(),
+             "height": self.level_images[name].get_height(), "interaction_radius": radius}
             for lvl_id, name, x, y, radius in level_data
         ]
 
-    def set_context(self, screen, hero_type, audio_manager=None):
-        """Set the screen and hero type needed for the enter_level method."""
+    def set_context(self, screen, hero_type, audio_manager=None, game_instance=None):
+        """Set the screen, hero type, audio_manager and game_instance needed for the enter_level method."""
         self.screen = screen
         self.hero_type = hero_type
         self.audio_manager = audio_manager
+        self.game_instance = game_instance
 
     def get_level_by_id(self, level_id):
         """Get a level by its ID."""
@@ -87,11 +87,9 @@ class Levels:
             # Calculate center of level
             level_center_x = level["map_x"] + level["width"] // 2
             level_center_y = level["map_y"] + level["height"] // 2
-
             # Calculate distance to level
             distance = ((char_map_x - level_center_x) ** 2 +
                         (char_map_y - level_center_y) ** 2) ** 0.5
-
             # If within interaction radius
             if distance <= level["interaction_radius"]:
                 return level["id"]
@@ -115,10 +113,15 @@ class Levels:
                 from gameplay.level_1 import Level1
                 level = Level1(self.script_dir)
             # Start the battle with the player's hero type
-
-            battle = Battle(self.screen, self.script_dir, level, self.hero_type, self.audio_manager)
+            battle = Battle(
+                self.screen,
+                self.script_dir,
+                level,
+                self.hero_type,
+                self.audio_manager,
+                game_instance=self.game_instance  # Make sure to pass the game_instance here
+            )
             victory = battle.run()
-
             # Handle battle result
             if victory:
                 print(f"Victory! Level {self.active_level} completed.")

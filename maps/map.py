@@ -8,7 +8,7 @@ from gameplay.levels import Levels
 
 
 class Map:
-    def __init__(self, screen, script_dir, go_back_callback, audio_manager, hero_type=None):
+    def __init__(self, screen, script_dir, go_back_callback, audio_manager, hero_type=None, game_instance=None):
         """Initialize the LSPU map with a Back button and navigation features."""
         self.script_dir = script_dir
         self.screen = screen
@@ -18,6 +18,9 @@ class Map:
 
         # Set the hero type (boy or girl)
         self.hero_type = hero_type if hero_type else "boy"  # Default to boy if not specified
+
+        # Store the game instance
+        self.game_instance = game_instance
 
         # Play hero-specific OST if audio is enabled
         if self.audio_manager.audio_enabled:
@@ -47,8 +50,13 @@ class Map:
 
         # Initialize levels
         self.levels_manager = Levels(script_dir)
-        # Pass screen and hero_type to the levels manager
-        self.levels_manager.set_context(self.screen, self.hero_type, self.audio_manager)
+        # Pass screen, hero_type, audio_manager AND game_instance to the levels manager
+        self.levels_manager.set_context(
+            self.screen,
+            self.hero_type,
+            self.audio_manager,
+            game_instance=self.game_instance  # Assuming Map is created with game_instance reference
+        )
 
         # Initialize enter button (but don't create it yet - will be created dynamically)
         self.enter_button = None

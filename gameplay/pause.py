@@ -6,7 +6,7 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FONT_PATH
 
 
 class Pause:
-    def __init__(self, screen, script_dir, audio_manager=None, scale=1):
+    def __init__(self, screen, script_dir, audio_manager=None, scale=1, map_callback=None, menu_callback=None):
         self.screen = screen
         self.script_dir = script_dir
         self.audio_manager = audio_manager
@@ -17,6 +17,10 @@ class Pause:
         self.show_confirmation = False
         self.confirmation_type = None  # 'menu' or 'map'
         self.confirmation_buttons = []
+
+        # Callbacks for menu and map actions
+        self.map_callback = map_callback
+        self.menu_callback = menu_callback
 
         # Load fonts
         self.font = pygame.font.Font(FONT_PATH, 50)
@@ -32,8 +36,7 @@ class Pause:
         self.border_img = self.load_scaled_image(border_path, 0.5)
 
         # Load confirmation border image
-        confirm_border_path = os.path.join(script_dir, "assets", "images", "battle", "pause", "confirmation",
-                                           "yesorno_border.png")
+        confirm_border_path = os.path.join(script_dir, "assets", "images", "battle", "pause", "confirmation", "yesorno_border.png")
         self.confirm_border_img = self.load_scaled_image(confirm_border_path, 0.65)
 
         # Create pause button
@@ -56,17 +59,17 @@ class Pause:
         icons = [
             {
                 "name": "menu",
-                "pos": (SCREEN_WIDTH // 2 - 250, SCREEN_HEIGHT // 2 + 25),
+                "pos": (SCREEN_WIDTH // 2 - 250, SCREEN_HEIGHT // 2 + 40),
                 "action": self.show_menu_confirmation
             },
             {
                 "name": "map",
-                "pos": (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2),
+                "pos": (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 15),
                 "action": self.show_map_confirmation
             },
             {
                 "name": "resume",
-                "pos": (SCREEN_WIDTH // 2 + 250, SCREEN_HEIGHT // 2 + 25),
+                "pos": (SCREEN_WIDTH // 2 + 250, SCREEN_HEIGHT // 2 + 40),
                 "action": self.toggle_pause
             },
         ]
@@ -158,10 +161,25 @@ class Pause:
     def confirm_action(self):
         """Handle confirmation (Yes button click)"""
         print(f"Yes clicked for {self.confirmation_type}")
+
         if self.confirmation_type == 'menu':
-            self.return_to_menu()
+            # Use menu callback if provided
+            print(f"Yes clicked for {self.confirmation_type}")
+            if self.menu_callback:
+                print("Calling menu callback")
+                self.menu_callback()  # Ensure this function is correctly defined
+                self.paused = False  # Unpause the game before returning to menu
+            else:
+                print("No menu callback provided.")
         elif self.confirmation_type == 'map':
-            self.open_map()
+            # Use map callback if provided
+            if self.map_callback:
+                print("Calling map callback")
+                self.map_callback()
+            else:
+                print("No map callback provided.")
+
+        # Cancel confirmation dialog
         self.cancel_confirmation()
 
     def cancel_confirmation(self):

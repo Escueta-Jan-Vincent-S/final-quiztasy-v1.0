@@ -8,7 +8,7 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, FONT_PATH
 from .pause import Pause
 
 class Battle:
-    def __init__(self, screen, script_dir, level, player_type="boy", audio_manager=None):
+    def __init__(self, screen, script_dir, level, player_type="boy", audio_manager=None, game_instance=None):
         self.screen = screen
         self.script_dir = script_dir
         self.level = level
@@ -17,6 +17,7 @@ class Battle:
         self.font = pygame.font.Font(FONT_PATH, 50)
         self.small_font = pygame.font.Font(FONT_PATH, 30)
         self.audio_manager = audio_manager
+        self.game_instance = game_instance
 
         # Initialize player and enemy
         self.player = Player(script_dir, player_type)
@@ -35,8 +36,14 @@ class Battle:
         self.player_type = player_type
         self.map_ost = self.get_map_ost_path()
 
-        # Intitialize pause menu
-        self.pause_menu = Pause(screen, script_dir, audio_manager)
+        # Initialize pause menu with specific callbacks
+        self.pause_menu = Pause(
+            screen,
+            script_dir,
+            audio_manager,
+            map_callback=self.open_map_from_pause,
+            menu_callback=self.return_to_menu_from_pause
+        )
 
         # Initialize first question
         self.generate_new_question()
@@ -46,6 +53,22 @@ class Battle:
         if self.battle_music:
             pygame.mixer.music.load(self.battle_music)
             pygame.mixer.music.play(-1)  # Loop the battle music
+
+    def open_map_from_pause(self):
+        """Handle opening map when selected from pause menu"""
+        # Implement logic to open map
+        print("Opening map from pause menu")
+        self.running = False  # End current battle
+
+    def return_to_menu_from_pause(self):
+        """Handle returning to main menu when selected from pause menu"""
+        print("Returning to main menu from pause menu")
+        self.running = False  # End current battle
+        if self.game_instance:
+            # Call the return_to_main_menu method instead of main_menu
+            self.game_instance.return_to_main_menu()
+        else:
+            print("No game instance")
 
     def get_map_ost_path(self):
         """Get the path to the map OST based on player type."""

@@ -169,8 +169,11 @@ class MainMenu:
         self.visible = False
 
     def main_menu(self):
+        # Ensure all main menu buttons are visible
         for button in self.menu_buttons:
             button.visible = True  # Show main menu buttons
+
+        # Ensure the game logo is visible
         self.show_game_logo = True  # Show the game logo
 
         # Hide game modes based on where it exists
